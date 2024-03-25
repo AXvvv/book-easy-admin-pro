@@ -1,18 +1,25 @@
 import Cookies from "js-cookie";
 import { storageLocal } from "@pureadmin/utils";
 import { useUserStoreHook } from "@/store/modules/user";
+import dayjs from "dayjs";
 
 export interface DataInfo<T> {
-  /** token */
-  accessToken: string;
-  /** `accessToken`的过期时间（时间戳） */
+  // /** token */
+  // accessToken: string;
+  // /** `accessToken`的过期时间（时间戳） */
   expires: T;
-  /** 用于调用刷新accessToken的接口时所需的token */
-  refreshToken: string;
-  /** 用户名 */
-  username?: string;
-  /** 当前登陆用户的角色 */
+  // /** 用于调用刷新accessToken的接口时所需的token */
+  // refreshToken: string;
+  // /** 用户名 */
+  // username?: string;
+  // /** 当前登陆用户的角色 */
   roles?: Array<string>;
+  id: number;
+  nick_name: string;
+  token: string;
+  thumb: string | number | null;
+  title: string | number | null;
+  email: string;
 }
 
 export const userKey = "user-info";
@@ -41,9 +48,12 @@ export function getToken(): DataInfo<number> {
  */
 export function setToken(data: DataInfo<Date>) {
   let expires = 0;
-  const { accessToken, refreshToken } = data;
+  // const { token: accessToken, refreshToken } = data;
+  const { token: accessToken } = data;
   const { isRemembered, loginDay } = useUserStoreHook();
-  expires = new Date(data.expires).getTime(); // 如果后端直接设置时间戳，将此处代码改为expires = data.expires，然后把上面的DataInfo<Date>改成DataInfo<number>即可
+  // expires = new Date(data.expires).getTime(); // 如果后端直接设置时间戳，将此处代码改为expires = data.expires，然后把上面的DataInfo<Date>改成DataInfo<number>即可
+  // 改为dayjs 获取时间戳
+  expires = dayjs().add(7, "day").valueOf();
   const cookieString = JSON.stringify({ accessToken, expires });
 
   expires > 0
@@ -66,19 +76,19 @@ export function setToken(data: DataInfo<Date>) {
     useUserStoreHook().SET_USERNAME(username);
     useUserStoreHook().SET_ROLES(roles);
     storageLocal().setItem(userKey, {
-      refreshToken,
+      // refreshToken,
       expires,
       username,
       roles
     });
   }
 
-  if (data.username && data.roles) {
-    const { username, roles } = data;
-    setUserKey(username, roles);
+  if (data.nick_name && data.roles) {
+    const { nick_name, roles } = data;
+    setUserKey(nick_name, roles);
   } else {
     const username =
-      storageLocal().getItem<DataInfo<number>>(userKey)?.username ?? "";
+      storageLocal().getItem<DataInfo<number>>(userKey)?.nick_name ?? "";
     const roles =
       storageLocal().getItem<DataInfo<number>>(userKey)?.roles ?? [];
     setUserKey(username, roles);
